@@ -1,7 +1,7 @@
 package main
 import (
 "net/http"
-"les1/internal/controllers"
+"link-service/internal/controllers"
 "log"
 
 )
