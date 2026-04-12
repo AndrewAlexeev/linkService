@@ -3,8 +3,8 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"les1/models"
-	"les1/services"
+	"les1/internal/models"
+	"les1/internal/services"
 	"encoding/json"
 )
 
