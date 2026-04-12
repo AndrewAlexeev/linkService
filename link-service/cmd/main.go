@@ -17,6 +17,6 @@ func startUpHttpServer(){
 		log.Println("Start app")
 		var error = http.ListenAndServe(":8080", nil)
 		if error != nil {
-        	log.Fatal("Server startup error:", error)
+        	log.Fatal("Server startup error: ", error)
     	}
 }
