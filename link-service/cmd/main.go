@@ -14,8 +14,8 @@ func main(){
 
 func startUpHttpServer(){
 		http.HandleFunc("/links",controllers.HandleCreate)
-
-		var error = http.ListenAndServe(":80", nil)
+		log.Println("Start app")
+		var error = http.ListenAndServe(":8080", nil)
 		if error != nil {
         	log.Fatal("Server startup error:", error)
     	}
