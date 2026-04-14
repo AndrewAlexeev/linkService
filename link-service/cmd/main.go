@@ -1,59 +1,43 @@
 package main
+
 import (
-"net/http"
-"link-service/internal/controllers"
-"link-service/internal/config"
-"log"
-"database/sql"
-"fmt"
-    _ "github.com/lib/pq"
+	"link-service/internal/config"
+	"link-service/internal/controllers"
+	"link-service/internal/repository"
+	"link-service/internal/services"
+	"log"
+	"net/http"
+
+	_ "github.com/lib/pq"
 )
 
-func main(){
-	
+func main() {
+
 	startUpHttpServer()
 
 }
 
-func startUpHttpServer(){
-		config := config.InitConfig()
+func startUpHttpServer() {
+	dbconfig := config.InitDbConfig()
 
+	repository, err := repository.Init(dbconfig)
 
+	if err != nil {
+		log.Fatal("Repositry init error: ", err)
+	}
 
-		psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
-        "password=%s dbname=%s sslmode=disable",
-        config.DbHost,  config.DbPort,  config.DbUser,  config.DbPassword, config.DbName)
+	var linkService = services.LinkService{
+		LinkRepository: repository}
 
-		log.Println(psqlInfo)
-		
+	var linkController = controllers.LinkController{
+		LinkService: linkService}
 
-    	db, err := sql.Open("postgres", psqlInfo)
+	config := config.InitConfig()
 
-		if err != nil {
-         log.Fatal("failed to connect to database: %w", err)
-		 return
-    	}
-
-		result, err := db.Exec("insert into links (original_url, short_code, created_at, visits) values ($1,$2,NOW(), 0)", 
-        "1","2")
-    	if err != nil{
-			log.Fatal("error: ", err)
-        	panic(err)
-    	}
-
-		if (result != nil){
-			log.Println("ok")
-		}
-    
-    	if err := db.Ping(); err != nil {
-         log.Fatal("failed to ping database: %w", err)
-		 return
-    	}
-
-		http.HandleFunc("/links",controllers.HandleCreate)
-		log.Println("Start app on port: ", config.Port)
-		var error = http.ListenAndServe(":"+config.Port, nil)
-		if error != nil {
-        	log.Fatal("Server startup error: ", error)
-    	}
+	http.HandleFunc("/links", linkController.HandleCreate)
+	log.Println("Start app on port: ", config.Port)
+	var error = http.ListenAndServe(":"+config.Port, nil)
+	if error != nil {
+		log.Fatal("Server startup error: ", error)
+	}
 }

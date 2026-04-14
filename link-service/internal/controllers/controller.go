@@ -1,13 +1,17 @@
 package controllers
 
 import (
-	"net/http"
+	"encoding/json"
 	"link-service/internal/models"
 	"link-service/internal/services"
-	"encoding/json"
+	"net/http"
 )
 
-func HandleCreate(w http.ResponseWriter, r *http.Request){
+type LinkController struct {
+	LinkService services.LinkService
+}
+
+func (lc LinkController) HandleCreate(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 		var createLinkRequest models.CreateLinkRequest
@@ -23,8 +27,15 @@ func HandleCreate(w http.ResponseWriter, r *http.Request){
 			return
 		}
 
+		shortCode, err := lc.LinkService.SaveUrl(createLinkRequest.Url)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		var createLinkResponse models.CreateLinkResponse
-		createLinkResponse.ShortCode = services.CreateRandomString(10)
+		createLinkResponse.ShortCode = shortCode
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(createLinkResponse)
 	} else {

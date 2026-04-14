@@ -17,7 +17,7 @@ services:
       retries: 10    # Количество попыток перед признанием "healthy"
       start_period: 10s # Время на старт, пока проверки могут не учитываться
 
-  app:
+  service-link:
     build: .
     ports:
       - "8080:8081"
