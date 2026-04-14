@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"link-service/internal/models"
 	"link-service/internal/services"
@@ -15,11 +14,19 @@ func HandleCreate(w http.ResponseWriter, r *http.Request){
 		var err = json.NewDecoder(r.Body).Decode(&createLinkRequest)
 		if err != nil {
 			http.Error(w, "Error while parsing request", http.StatusBadRequest)
+			return
 		}
-	var createLinkResponse models.CreateLinkResponse
-//TODO размер случайной ссылки берем из конфигов
-	createLinkResponse.ShortCode = services.CreateShortLink(createLinkRequest.Url, 10)
-	fmt.Fprintln(w, createLinkResponse)
+
+		err = createLinkRequest.Validate()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		var createLinkResponse models.CreateLinkResponse
+		createLinkResponse.ShortCode = services.CreateRandomString(10)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(createLinkResponse)
 	} else {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}

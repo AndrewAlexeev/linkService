@@ -1,5 +1,27 @@
 services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: link_storage
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./migrations:/docker-entrypoint-initdb.d
+
   app:
     build: .
     ports:
-      - "8080:8080"
+      - "8080:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+    - PORT=8081
+    - DB_HOST=postgres
+    - DB_PORT=5432
+    - DB_USER=postgres
+    - DB_PASSWORD=password
+    - DB_NAME=link_storage
