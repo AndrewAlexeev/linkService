@@ -1,26 +1,35 @@
 package config
-import(
+
+import (
 	"os"
 )
-type Config struct{
-		Port string
-		DbHost string
-    	DbPort string
-    	DbUser string
-		DbName string
-		DbPassword string
 
+type DbConfig struct {
+	Host     string
+	Port     string
+	User     string
+	Name     string
+	Password string
+}
+
+type Config struct {
+	Port string
+}
+
+func InitDbConfig() DbConfig {
+	config := DbConfig{
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		Password: os.Getenv("DB_PASSWORD"),
+		User:     os.Getenv("DB_USER"),
+		Name:     os.Getenv("DB_NAME")}
+	return config
 
 }
 
-func InitConfig() Config{
+func InitConfig() Config {
 	config := Config{
-		Port : os.Getenv("PORT"),
-		DbHost : os.Getenv("DB_HOST"),
-		DbPort : os.Getenv("DB_PORT"),
-		DbPassword : os.Getenv("DB_PASSWORD"),
-		DbUser :  os.Getenv("DB_USER"),
-		DbName : os.Getenv("DB_NAME")}
+		Port: os.Getenv("PORT")}
 	return config
 
 }
