@@ -1,6 +1,7 @@
 package services
 
 import (
+	"link-service/internal/models"
 	"link-service/internal/repository"
 	"math/rand"
 	"time"
@@ -13,6 +14,10 @@ type LinkService struct {
 func (l LinkService) SaveUrl(url string) (string, error) {
 	shortCode := CreateRandomString(10)
 	return shortCode, l.LinkRepository.SaveUrl(url, shortCode)
+}
+
+func (l LinkService) FindLinkByShortCode(shortCode string) (*models.LinkDto, error) {
+	return l.LinkRepository.FindLinkByShortCode(shortCode)
 }
 
 func CreateRandomString(size int) string {

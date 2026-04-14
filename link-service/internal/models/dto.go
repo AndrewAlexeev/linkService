@@ -1,34 +1,42 @@
 package models
-import(
-	"time"
-	"strings"
+
+import (
 	"errors"
+	"strings"
+	"time"
 )
 
-type CreateLinkRequest struct{
+type LinkDto struct {
+	ShortCode string
+	Url       string
+	Visits    int32
+	CreatedAt time.Time
+}
+
+type CreateLinkRequest struct {
 	Url string `json:"url"`
 }
 
 func (r *CreateLinkRequest) Validate() error {
-    if strings.TrimSpace(r.Url) == "" {
-        return errors.New("url is required")
-    }
+	if strings.TrimSpace(r.Url) == "" {
+		return errors.New("url is required")
+	}
 
-    return nil
+	return nil
 }
 
-type CreateLinkResponse struct{
+type CreateLinkResponse struct {
 	ShortCode string `json:"short_code"`
 }
 
-type LinkResponse struct{
-	Url string `json:"url"`
-	Visits int32 `json:"visits"`
+type LinkResponse struct {
+	Url    string `json:"url"`
+	Visits int32  `json:"visits"`
 }
 
-type StatsLinkResponse struct{
-	ShortCode string `json:"short_code"`
-	Url string `json:"url"`
-	Visits int32 `json:"visits"`
+type StatsLinkResponse struct {
+	ShortCode string    `json:"short_code"`
+	Url       string    `json:"url"`
+	Visits    int32     `json:"visits"`
 	CreatedAt time.Time `json:"created_at"`
 }

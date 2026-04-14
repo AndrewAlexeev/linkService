@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"link-service/internal/config"
+	"link-service/internal/models"
 	"log"
 )
 
@@ -33,15 +34,23 @@ func Init(dbConfig config.DbConfig) (*LinkRepository, error) {
 
 }
 
-func (l LinkRepository) SaveUrl(link string, shortLink string) error {
+func (l LinkRepository) SaveUrl(link string, shortCode string) error {
 
-	_, err := l.db.Exec("insert into links (original_url, short_code, created_at, visits) values ($1,$2,NOW(), 0)",
-		link, shortLink)
+	_, err := l.db.Exec("insert into links (original_url, short_code, created_at, visits) values ($1,$2,NOW(), 0)", link, shortCode)
 	if err != nil {
-		log.Fatal("error: ", err)
+		log.Print("error: ", err)
 		return err
 	}
 
 	return nil
+
+}
+
+func (l LinkRepository) FindLinkByShortCode(shortCode string) (*models.LinkDto, error) {
+
+	row := l.db.QueryRow("select original_url, visits from links where short_code = $1", shortCode)
+	lDto := models.LinkDto{}
+	err := row.Scan(&lDto.Url, &lDto.Visits)
+	return &lDto, err
 
 }

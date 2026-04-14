@@ -34,9 +34,14 @@ func startUpHttpServer() {
 
 	config := config.InitConfig()
 
-	http.HandleFunc("/links", linkController.HandleCreate)
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("POST /links", linkController.HandleCreate)
+
+	// {id} - это переменная пути
+	mux.HandleFunc("GET /links/{short_code}", linkController.HandleFetchLinkByShortCode)
 	log.Println("Start app on port: ", config.Port)
-	var error = http.ListenAndServe(":"+config.Port, nil)
+	var error = http.ListenAndServe(":"+config.Port, mux)
 	if error != nil {
 		log.Fatal("Server startup error: ", error)
 	}
