@@ -24,6 +24,7 @@ WORKDIR /root/
 
 # # Копирование бинарника из этапа сборки
 COPY --from=builder /app/link-service .
+COPY --from=builder /app/migrations ./migrations
 
 # Запуск приложения
 CMD ["./link-service"]
