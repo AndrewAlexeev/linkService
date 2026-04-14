@@ -9,6 +9,13 @@ services:
       - "5432:5432"
     volumes:
       - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      # Проверяем готовность через pg_isready
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s   # Частота проверок
+      timeout: 5s    # Таймаут одной проверки
+      retries: 10    # Количество попыток перед признанием "healthy"
+      start_period: 10s # Время на старт, пока проверки могут не учитываться
 
   app:
     build: .
