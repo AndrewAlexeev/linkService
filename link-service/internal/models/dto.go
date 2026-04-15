@@ -17,7 +17,7 @@ type CreateLinkRequest struct {
 	Url string `json:"url"`
 }
 
-func (r *CreateLinkRequest) Validate() error {
+func (r CreateLinkRequest) Validate() error {
 	if strings.TrimSpace(r.Url) == "" {
 		return errors.New("url is required")
 	}
@@ -34,7 +34,7 @@ type LinkResponse struct {
 	Visits int32  `json:"visits"`
 }
 
-type StatsLinkResponse struct {
+type LinkStatResponse struct {
 	ShortCode string    `json:"short_code"`
 	Url       string    `json:"url"`
 	Visits    int32     `json:"visits"`

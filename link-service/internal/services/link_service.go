@@ -7,17 +7,41 @@ import (
 	"time"
 )
 
+// type LinkRepository interface {
+// 	SaveUrl(url, shortCode string) error
+// 	FindLinkByShortCode(shortCode string) (models.LinkDto, error)
+// 	FindLinkStatsByShortCode(shortCode string) (models.LinkDto, error)
+// 	IncrementVisit(shortCode string) error
+// 	DeleteByShortCode(shortCode string) error
+// }
+
 type LinkService struct {
-	LinkRepository *repository.LinkRepository
+	linkRepository *repository.LinkRepository
 }
 
-func (l LinkService) SaveUrl(url string) (string, error) {
+func NewLinkService(repository *repository.LinkRepository) *LinkService {
+	return &LinkService{linkRepository: repository}
+}
+
+func (ls *LinkService) SaveUrl(url string) (string, error) {
 	shortCode := CreateRandomString(10)
-	return shortCode, l.LinkRepository.SaveUrl(url, shortCode)
+	return shortCode, ls.linkRepository.SaveUrl(url, shortCode)
 }
 
-func (l LinkService) FindLinkByShortCode(shortCode string) (*models.LinkDto, error) {
-	return l.LinkRepository.FindLinkByShortCode(shortCode)
+func (ls *LinkService) FindLinkByShortCode(shortCode string) (models.LinkDto, error) {
+	linkDto, err := ls.linkRepository.FindLinkByShortCode(shortCode)
+	go ls.linkRepository.IncrementVisit(shortCode)
+	linkDto.Visits = linkDto.Visits + 1
+	return linkDto, err
+}
+
+func (ls *LinkService) FindLinkStatsByShortCode(shortCode string) (models.LinkDto, error) {
+	linkDto, err := ls.linkRepository.FindLinkStatsByShortCode(shortCode)
+	return linkDto, err
+}
+
+func (ls *LinkService) DeleteByShortCode(shortCode string) error {
+	return ls.linkRepository.DeleteByShortCode(shortCode)
 }
 
 func CreateRandomString(size int) string {
