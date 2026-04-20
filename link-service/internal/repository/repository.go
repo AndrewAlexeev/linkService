@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"link-service/internal/config"
@@ -36,9 +37,9 @@ func NewLinkRepository(dbConfig config.DbConfig) (*LinkRepository, error) {
 
 }
 
-func (l *LinkRepository) SaveUrl(link string, shortCode string) error {
+func (l *LinkRepository) SaveUrl(ctx context.Context, link string, shortCode string) error {
 
-	_, err := l.db.Exec("INSERT INTO links (original_url, short_code, created_at, visits) VALUES ($1,$2,NOW(), 0)", link, shortCode)
+	_, err := l.db.ExecContext(ctx, "INSERT INTO links (original_url, short_code, created_at, visits) VALUES ($1,$2,NOW(), 0)", link, shortCode)
 	if err != nil {
 		log.Print("error: ", err)
 		return err
@@ -48,18 +49,18 @@ func (l *LinkRepository) SaveUrl(link string, shortCode string) error {
 
 }
 
-func (l *LinkRepository) FindLinkByShortCode(shortCode string) (models.LinkDto, error) {
+func (l *LinkRepository) FindLinkByShortCode(ctx context.Context, shortCode string) (models.LinkDto, error) {
 
-	row := l.db.QueryRow("SELECT original_url, visits FROM links WHERE short_code = $1", shortCode)
+	row := l.db.QueryRowContext(ctx, "SELECT original_url, visits FROM links WHERE short_code = $1", shortCode)
 	lDto := models.LinkDto{}
 	err := row.Scan(&lDto.Url, &lDto.Visits)
 	return lDto, err
 
 }
 
-func (l *LinkRepository) IncrementVisit(shortCode string) error {
+func (l *LinkRepository) IncrementVisit(ctx context.Context, shortCode string) error {
 
-	_, err := l.db.Exec("UPDATE links SET visits = visits+1 WHERE short_code = $1", shortCode)
+	_, err := l.db.ExecContext(ctx, "UPDATE links SET visits = visits+1 WHERE short_code = $1", shortCode)
 	if err != nil {
 		log.Print("error: ", err)
 		return err
@@ -67,16 +68,16 @@ func (l *LinkRepository) IncrementVisit(shortCode string) error {
 	return nil
 }
 
-func (l *LinkRepository) FindLinkStatsByShortCode(shortCode string) (models.LinkDto, error) {
-	row := l.db.QueryRow("SELECT original_url, short_code, visits, created_at FROM links WHERE short_code = $1", shortCode)
+func (l *LinkRepository) FindLinkStatsByShortCode(ctx context.Context, shortCode string) (models.LinkDto, error) {
+	row := l.db.QueryRowContext(ctx, "SELECT original_url, short_code, visits, created_at FROM links WHERE short_code = $1", shortCode)
 	lDto := models.LinkDto{}
 	err := row.Scan(&lDto.Url, &lDto.ShortCode, &lDto.Visits, &lDto.CreatedAt)
 	return lDto, err
 
 }
 
-func (l *LinkRepository) DeleteByShortCode(shortCode string) error {
-	_, err := l.db.Exec("DELETE FROM links WHERE short_code = $1", shortCode)
+func (l *LinkRepository) DeleteByShortCode(ctx context.Context, shortCode string) error {
+	_, err := l.db.ExecContext(ctx, "DELETE FROM links WHERE short_code = $1", shortCode)
 	if err != nil {
 		log.Print("error: ", err)
 		return err
