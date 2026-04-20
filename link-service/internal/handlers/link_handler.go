@@ -31,7 +31,7 @@ func (lh LinkHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortCode, err := lh.linkService.SaveUrl(createLinkRequest.Url)
+	shortCode, err := lh.linkService.SaveUrl(r.Context(), createLinkRequest.Url)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -54,7 +54,7 @@ func (lh LinkHandler) GetLinkByShortCode(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	linkDto, err := lh.linkService.FindLinkByShortCode(shortCode)
+	linkDto, err := lh.linkService.FindLinkByShortCode(r.Context(), shortCode)
 
 	if err != nil {
 		log.Printf("Eror while fetch link by short code: %s error: %s", shortCode, err)
@@ -76,7 +76,7 @@ func (lh LinkHandler) GetStatsByShortCode(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	linkDto, err := lh.linkService.FindLinkStatsByShortCode(shortCode)
+	linkDto, err := lh.linkService.FindLinkStatsByShortCode(r.Context(), shortCode)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -102,7 +102,7 @@ func (lh LinkHandler) DeleteByShortCode(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err := lh.linkService.DeleteByShortCode(shortCode)
+	err := lh.linkService.DeleteByShortCode(r.Context(), shortCode)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
