@@ -29,6 +29,34 @@ services:
     networks:
       - app-network
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+    environment:
+      - REDIS_PASSWORD=password
+      - REDIS_PORT=6379
+      - REDIS_DATABASES=16
+
+  redisinsight:
+    image: redis/redisinsight:2.46.0
+    container_name: redisinsight
+    ports:
+      - "8083:5540"
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
   service-link:
     build: .
     ports:
@@ -48,7 +76,15 @@ services:
     - DB_USER=postgres
     - DB_PASSWORD=password
     - DB_NAME=link_storage
+    - REDIS_ADDR=redis:6379
+    - REDIS_PASSWORD=password
+    - REDIS_DB=0
+    - CACHE_TTL=3600
   
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

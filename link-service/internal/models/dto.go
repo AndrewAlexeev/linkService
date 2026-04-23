@@ -13,6 +13,12 @@ type LinkDto struct {
 	CreatedAt time.Time
 }
 
+type CacheDto struct {
+	ShortCode string
+	Url       string
+	Visits    int32
+}
+
 type CreateLinkRequest struct {
 	Url string `json:"url"`
 }

@@ -31,7 +31,7 @@ func (lh LinkHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortCode, err := lh.linkService.SaveUrl(r.Context(), createLinkRequest.Url)
+	shortCode, err := lh.linkService.SaveLink(r.Context(), createLinkRequest.Url)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -108,5 +108,24 @@ func (lh LinkHandler) DeleteByShortCode(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	log.Printf("Delete link by short code: %s", shortCode)
+
+}
+
+func (lh LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
+
+	params := r.URL.Query()
+
+	limit := params.Get("limit")
+	offset := params.Get("offset")
+
+	linkDtos, err := lh.linkService.GetByPage(r.Context(), limit, offset)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	json.NewEncoder(w).Encode(linkDtos)
 
 }

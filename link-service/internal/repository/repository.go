@@ -49,12 +49,12 @@ func (l *LinkRepository) SaveUrl(ctx context.Context, link string, shortCode str
 
 }
 
-func (l *LinkRepository) FindLinkByShortCode(ctx context.Context, shortCode string) (models.LinkDto, error) {
+func (l *LinkRepository) FindLinkByShortCode(ctx context.Context, shortCode string) (*models.LinkDto, error) {
 
 	row := l.db.QueryRowContext(ctx, "SELECT original_url, visits FROM links WHERE short_code = $1", shortCode)
 	lDto := models.LinkDto{}
 	err := row.Scan(&lDto.Url, &lDto.Visits)
-	return lDto, err
+	return &lDto, err
 
 }
 
@@ -83,4 +83,32 @@ func (l *LinkRepository) DeleteByShortCode(ctx context.Context, shortCode string
 		return err
 	}
 	return nil
+}
+
+func (l *LinkRepository) GetByPage(ctx context.Context, limit, offset int) ([]models.LinkDto, error) {
+
+	rows, err := l.db.QueryContext(ctx, "SELECT original_url, short_code, visits, created_at FROM links ORDER BY created_at DESC LIMIT $1 OFFSET $2", limit, offset)
+	if err != nil {
+		log.Print("error: ", err)
+		return make([]models.LinkDto, 0), err
+	}
+
+	defer rows.Close()
+
+	var response []models.LinkDto
+
+	for rows.Next() {
+
+		lDto := models.LinkDto{}
+
+		if err := rows.Scan(&lDto.Url, &lDto.ShortCode, &lDto.Visits, &lDto.CreatedAt); err != nil {
+			log.Print(err)
+			return make([]models.LinkDto, 0), err
+		}
+
+		response = append(response, lDto)
+
+	}
+	return response, nil
+
 }
