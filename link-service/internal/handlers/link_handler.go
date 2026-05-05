@@ -12,11 +12,11 @@ type LinkHandler struct {
 	linkService *services.LinkService
 }
 
-func NewLinkHandler(linkService *services.LinkService) LinkHandler {
-	return LinkHandler{linkService: linkService}
+func NewLinkHandler(linkService *services.LinkService) *LinkHandler {
+	return &LinkHandler{linkService: linkService}
 }
 
-func (lh LinkHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (lh *LinkHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	var createLinkRequest models.CreateLinkRequest
 	var err = json.NewDecoder(r.Body).Decode(&createLinkRequest)
@@ -46,7 +46,7 @@ func (lh LinkHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (lh LinkHandler) GetLinkByShortCode(w http.ResponseWriter, r *http.Request) {
+func (lh *LinkHandler) GetLinkByShortCode(w http.ResponseWriter, r *http.Request) {
 	shortCode := r.PathValue("short_code")
 
 	if shortCode == "" {
@@ -69,7 +69,7 @@ func (lh LinkHandler) GetLinkByShortCode(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(linkResponse)
 }
 
-func (lh LinkHandler) GetStatsByShortCode(w http.ResponseWriter, r *http.Request) {
+func (lh *LinkHandler) GetStatsByShortCode(w http.ResponseWriter, r *http.Request) {
 	shortCode := r.PathValue("short_code")
 	if shortCode == "" {
 		http.Error(w, "short_code is nil", http.StatusBadRequest)
@@ -95,7 +95,7 @@ func (lh LinkHandler) GetStatsByShortCode(w http.ResponseWriter, r *http.Request
 
 }
 
-func (lh LinkHandler) DeleteByShortCode(w http.ResponseWriter, r *http.Request) {
+func (lh *LinkHandler) DeleteByShortCode(w http.ResponseWriter, r *http.Request) {
 	shortCode := r.PathValue("short_code")
 	if shortCode == "" {
 		http.Error(w, "short_code is nil", http.StatusBadRequest)
@@ -111,7 +111,7 @@ func (lh LinkHandler) DeleteByShortCode(w http.ResponseWriter, r *http.Request) 
 
 }
 
-func (lh LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
+func (lh *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 
 	params := r.URL.Query()
 
