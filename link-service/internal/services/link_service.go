@@ -25,37 +25,42 @@ func (ls *LinkService) SaveLink(ctx context.Context, url string) (string, error)
 	return shortCode, ls.linkRepository.SaveUrl(ctx, url, shortCode)
 }
 
-func (ls *LinkService) FindLinkByShortCode(ctx context.Context, shortCode string) (*models.LinkDto, error) {
-	//TODO тут скорее всего выполняется как go так и ниже стоящий код (тот, что если не нашли в кеше, надо исправить, чтобы нижний код исполнялся ТОЛЬКО если не нашли в кешеы)
-	linkDto, err := ls.linkCache.GetLinkInfo(ctx, shortCode)
-	if err == nil && linkDto != nil {
-		// Асинхронно увеличиваем счетчик в базе
-		go func() {
-			if err := ls.linkRepository.IncrementVisit(context.Background(), shortCode); err != nil {
-				// Логируем ошибку, но не блокируем ответ
-				log.Printf("failed to increment visits: %v\n", err)
-			}
-		}()
-		linkDto.Visits++
-		return linkDto, nil
+func (ls *LinkService) updateData(ctx context.Context, linkDto models.LinkDto, shortCode string) {
+	err, visits := ls.linkRepository.IncrementVisit(ctx, shortCode)
+	if err != nil {
+		// Логируем ошибку, но не блокируем ответ
+		log.Printf("failed to increment visits: %v\n", err)
+		return
 	}
-
-	linkDto, err = ls.linkRepository.FindLinkByShortCode(ctx, shortCode)
-	timeout := 5 * time.Second
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-	go ls.linkRepository.IncrementVisit(context.Background(), shortCode)
-	linkDto.Visits = linkDto.Visits + 1
 
 	cacheDto := models.CacheDto{
 		ShortCode: shortCode,
 		Url:       linkDto.Url,
-		Visits:    linkDto.Visits}
+		Visits:    visits}
 
 	if err := ls.linkCache.PutLinkInfo(ctx, cacheDto); err != nil {
 		// Логируем ошибку, но не блокируем ответ
 		log.Printf("failed to set cache: %v\n", err)
 	}
+
+}
+
+func (ls *LinkService) FindLinkByShortCode(ctx context.Context, shortCode string) (*models.LinkDto, error) {
+
+	linkDto, err := ls.linkCache.GetLinkInfo(ctx, shortCode)
+
+	if err == nil && linkDto != nil {
+		linkDto.Visits++
+		// Асинхронно увеличиваем счетчик в базе и в кеше
+		timeout := 5 * time.Second
+		uodateCtx, _ := context.WithTimeout(context.Background(), timeout)
+		go ls.updateData(uodateCtx, *linkDto, shortCode)
+		return linkDto, nil
+	}
+
+	linkDto, err = ls.linkRepository.FindLinkByShortCode(ctx, shortCode)
+	linkDto.Visits++
+	ls.updateData(ctx, *linkDto, shortCode)
 
 	return linkDto, err
 }

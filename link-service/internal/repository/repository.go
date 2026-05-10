@@ -58,14 +58,17 @@ func (l *LinkRepository) FindLinkByShortCode(ctx context.Context, shortCode stri
 
 }
 
-func (l *LinkRepository) IncrementVisit(ctx context.Context, shortCode string) error {
+func (l *LinkRepository) IncrementVisit(ctx context.Context, shortCode string) (error, int32) {
 
-	_, err := l.db.ExecContext(ctx, "UPDATE links SET visits = visits+1 WHERE short_code = $1", shortCode)
+	row := l.db.QueryRowContext(ctx, "UPDATE links SET visits = visits+1 WHERE short_code = $1 RETURNING visits", shortCode)
+	var visits int32
+	err := row.Scan(&visits)
+
 	if err != nil {
 		log.Print("error: ", err)
-		return err
+		return err, visits
 	}
-	return nil
+	return nil, visits
 }
 
 func (l *LinkRepository) FindLinkStatsByShortCode(ctx context.Context, shortCode string) (models.LinkDto, error) {
