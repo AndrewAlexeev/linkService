@@ -17,7 +17,6 @@
 - ✅ Удаление ссылок
 - ✅ Статистика по ссылкам
 - ✅ Кеширование в Redis
-- ✅ Конкурентно-безопасная работа
 ## 🚀 Установка
 ```bash
 git clone https://github.com/AndrewAlexeev/linkService
