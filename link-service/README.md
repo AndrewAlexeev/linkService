@@ -30,7 +30,7 @@ docker compose up
 ```bash
 curl http://localhost:8080/links
 ```
-
+Графический интерфейс redis доступен по адресу: http://localhost:8083
 ## 🛠 Технологии
 - [Golang]
 - [postgres]
