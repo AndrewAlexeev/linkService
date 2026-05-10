@@ -7,11 +7,14 @@ import (
 )
 
 type DbConfig struct {
-	Host     string
-	Port     string
-	User     string
-	Name     string
-	Password string
+	Host                 string
+	Port                 string
+	User                 string
+	Name                 string
+	Password             string
+	MaxOpenConns         int
+	MaxIdleConns         int
+	ConnMaxLifetimeInMin int
 }
 
 type RedisConfig struct {
@@ -25,14 +28,37 @@ type Config struct {
 	Port string
 }
 
-func InitDbConfig() DbConfig {
+func InitDbConfig() (*DbConfig, error) {
+
+	maxOpenConns, err := strconv.Atoi(os.Getenv("DB_MAX_OPEN_CONNS"))
+	if err != nil {
+		fmt.Println("error:", err)
+		return nil, err
+	}
+
+	maxIdleConns, err := strconv.Atoi(os.Getenv("DB_MAX_IDLE_CONNS"))
+	if err != nil {
+		fmt.Println("error:", err)
+		return nil, err
+	}
+
+	connMaxLifetimeInMin, err := strconv.Atoi(os.Getenv("DB_CONN_MAX_LIFETIME_IN_MINS"))
+	if err != nil {
+		fmt.Println("error:", err)
+		return nil, err
+	}
+
 	config := DbConfig{
-		Host:     os.Getenv("DB_HOST"),
-		Port:     os.Getenv("DB_PORT"),
-		User:     os.Getenv("DB_USER"),
-		Name:     os.Getenv("DB_NAME"),
-		Password: os.Getenv("DB_PASSWORD")}
-	return config
+		Host:                 os.Getenv("DB_HOST"),
+		Port:                 os.Getenv("DB_PORT"),
+		User:                 os.Getenv("DB_USER"),
+		Name:                 os.Getenv("DB_NAME"),
+		Password:             os.Getenv("DB_PASSWORD"),
+		MaxOpenConns:         maxOpenConns,
+		MaxIdleConns:         maxIdleConns,
+		ConnMaxLifetimeInMin: connMaxLifetimeInMin}
+
+	return &config, nil
 
 }
 
@@ -42,7 +68,7 @@ func InitRedisConfig() (*RedisConfig, error) {
 
 	db, err := strconv.Atoi(dbStr)
 	if err != nil {
-		fmt.Println("Ошибка:", err)
+		fmt.Println("error:", err)
 		return nil, err
 	}
 
@@ -50,7 +76,7 @@ func InitRedisConfig() (*RedisConfig, error) {
 
 	cacheTTL, err := strconv.Atoi(cacheTTLStr)
 	if err != nil {
-		fmt.Println("Ошибка:", err)
+		fmt.Println("error:", err)
 		return nil, err
 	}
 

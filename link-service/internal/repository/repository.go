@@ -7,6 +7,7 @@ import (
 	"link-service/internal/config"
 	"link-service/internal/models"
 	"log"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -15,12 +16,19 @@ type LinkRepository struct {
 	db *sql.DB
 }
 
-func NewLinkRepository(dbConfig config.DbConfig) (*LinkRepository, error) {
+func NewLinkRepository(dbConfig *config.DbConfig) (*LinkRepository, error) {
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		dbConfig.Host, dbConfig.Port, dbConfig.User, dbConfig.Password, dbConfig.Name)
 
 	db, err := sql.Open("postgres", psqlInfo)
+
+	// Ограничиваем количество открытых соединений
+	db.SetMaxOpenConns(dbConfig.MaxOpenConns)
+	// Ограничиваем количество простаивающих соединений
+	db.SetMaxIdleConns(dbConfig.MaxIdleConns)
+	// Устанавливаем время жизни соединения
+	db.SetConnMaxLifetime(time.Duration(dbConfig.ConnMaxLifetimeInMin) * time.Minute)
 
 	if err != nil {
 		log.Fatal("failed to connect to database: %w", err)

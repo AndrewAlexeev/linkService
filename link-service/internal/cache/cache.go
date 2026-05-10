@@ -21,7 +21,6 @@ func InitLinkCache(redisConfig config.RedisConfig) *LinkCache {
 		Addr:     redisConfig.Addr,
 		Password: redisConfig.Password,
 		DB:       redisConfig.DB})
-	time.Duration.Seconds(132)
 
 	linkCache := LinkCache{
 		client: rdc, ttl: time.Duration(redisConfig.CacheTTL) * time.Second}
