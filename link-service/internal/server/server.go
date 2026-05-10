@@ -20,7 +20,11 @@ func StartUpHttpServer() {
 
 	lc := cache.InitLinkCache(*redisConfig)
 
-	dbconfig := config.InitDbConfig()
+	dbconfig, err := config.InitDbConfig()
+
+	if err != nil {
+		log.Fatal("db config init error: ", err)
+	}
 
 	lr, err := repository.NewLinkRepository(dbconfig)
 
