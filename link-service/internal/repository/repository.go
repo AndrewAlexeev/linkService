@@ -3,8 +3,10 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"link-service/internal/config"
+	"link-service/internal/errs"
 	"link-service/internal/models"
 	"log"
 	"time"
@@ -62,6 +64,15 @@ func (l *LinkRepository) FindLinkByShortCode(ctx context.Context, shortCode stri
 	row := l.db.QueryRowContext(ctx, "SELECT original_url, visits FROM links WHERE short_code = $1", shortCode)
 	lDto := models.LinkDto{}
 	err := row.Scan(&lDto.Url, &lDto.Visits)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.NotFoundUrlError()
+		} else {
+			return nil, err
+		}
+	}
+
 	return &lDto, err
 
 }

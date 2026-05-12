@@ -59,6 +59,10 @@ func (ls *LinkService) FindLinkByShortCode(ctx context.Context, shortCode string
 	}
 
 	linkDto, err = ls.linkRepository.FindLinkByShortCode(ctx, shortCode)
+
+	if err != nil {
+		return nil, err
+	}
 	linkDto.Visits++
 	ls.updateData(ctx, *linkDto, shortCode)
 
