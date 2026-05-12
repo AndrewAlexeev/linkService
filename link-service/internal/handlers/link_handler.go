@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"link-service/internal/errs"
 	"link-service/internal/models"
 	"link-service/internal/services"
 	"log"
@@ -58,6 +59,11 @@ func (lh *LinkHandler) GetLinkByShortCode(w http.ResponseWriter, r *http.Request
 
 	if err != nil {
 		log.Printf("Eror while fetch link by short code: %s error: %s", shortCode, err)
+		if _, ok := err.(*errs.LinkServiceError); ok {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
