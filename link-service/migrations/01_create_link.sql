@@ -6,4 +6,4 @@ CREATE TABLE IF NOT EXISTS links (
     visits BIGINT NOT NULL DEFAULT 0
 );
 
-CREATE INDEX idx_links_short_code ON links(short_code);
+CREATE INDEX idx_links_created_at ON links(created_at DESC);

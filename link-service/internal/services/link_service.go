@@ -26,9 +26,8 @@ func (ls *LinkService) SaveLink(ctx context.Context, url string) (string, error)
 }
 
 func (ls *LinkService) updateData(ctx context.Context, linkDto models.LinkDto, shortCode string) {
-	err, visits := ls.linkRepository.IncrementVisit(ctx, shortCode)
+	visits, err := ls.linkRepository.IncrementVisit(ctx, shortCode)
 	if err != nil {
-		// Логируем ошибку, но не блокируем ответ
 		log.Printf("failed to increment visits: %v\n", err)
 		return
 	}
@@ -39,7 +38,6 @@ func (ls *LinkService) updateData(ctx context.Context, linkDto models.LinkDto, s
 		Visits:    visits}
 
 	if err := ls.linkCache.PutLinkInfo(ctx, cacheDto); err != nil {
-		// Логируем ошибку, но не блокируем ответ
 		log.Printf("failed to set cache: %v\n", err)
 	}
 
@@ -52,9 +50,15 @@ func (ls *LinkService) FindLinkByShortCode(ctx context.Context, shortCode string
 	if err == nil && linkDto != nil {
 		linkDto.Visits++
 		// Асинхронно увеличиваем счетчик в базе и в кеше
-		timeout := 5 * time.Second
-		uodateCtx, _ := context.WithTimeout(context.Background(), timeout)
-		go ls.updateData(uodateCtx, *linkDto, shortCode)
+		linkDtoCopy := *linkDto
+
+		go func() {
+			timeout := 5 * time.Second
+			updateCtx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
+			ls.updateData(updateCtx, linkDtoCopy, shortCode)
+
+		}()
 		return linkDto, nil
 	}
 
@@ -89,7 +93,7 @@ func (ls *LinkService) GetByPage(ctx context.Context, limit, offset string) ([]m
 	offsetInt, err2 := strconv.Atoi(offset)
 
 	if err2 != nil {
-		return make([]models.LinkDto, 0), err1
+		return make([]models.LinkDto, 0), err2
 	}
 
 	return ls.linkRepository.GetByPage(ctx, limitInt, offsetInt)
@@ -98,7 +102,6 @@ func (ls *LinkService) GetByPage(ctx context.Context, limit, offset string) ([]m
 func CreateRandomString(size int) string {
 
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-	rand.Seed(time.Now().UnixNano()) // Инициализация сида
 
 	s := make([]rune, size)
 	for i := range s {

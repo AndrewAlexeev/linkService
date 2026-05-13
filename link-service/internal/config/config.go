@@ -89,7 +89,7 @@ func InitRedisConfig() (*RedisConfig, error) {
 
 }
 
-func InitConfig() Config {
+func InitServerConfig() Config {
 	config := Config{
 		Port: os.Getenv("PORT")}
 	return config

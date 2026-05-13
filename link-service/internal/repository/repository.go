@@ -51,7 +51,7 @@ func (l *LinkRepository) SaveUrl(ctx context.Context, link string, shortCode str
 
 	_, err := l.db.ExecContext(ctx, "INSERT INTO links (original_url, short_code, created_at, visits) VALUES ($1,$2,NOW(), 0)", link, shortCode)
 	if err != nil {
-		log.Print("error: ", err)
+		log.Print("save url error: ", err)
 		return err
 	}
 
@@ -77,7 +77,7 @@ func (l *LinkRepository) FindLinkByShortCode(ctx context.Context, shortCode stri
 
 }
 
-func (l *LinkRepository) IncrementVisit(ctx context.Context, shortCode string) (error, int32) {
+func (l *LinkRepository) IncrementVisit(ctx context.Context, shortCode string) (int32, error) {
 
 	row := l.db.QueryRowContext(ctx, "UPDATE links SET visits = visits+1 WHERE short_code = $1 RETURNING visits", shortCode)
 	var visits int32
@@ -85,15 +85,24 @@ func (l *LinkRepository) IncrementVisit(ctx context.Context, shortCode string) (
 
 	if err != nil {
 		log.Print("error: ", err)
-		return err, visits
+		return visits, err
 	}
-	return nil, visits
+	return visits, nil
 }
 
 func (l *LinkRepository) FindLinkStatsByShortCode(ctx context.Context, shortCode string) (models.LinkDto, error) {
 	row := l.db.QueryRowContext(ctx, "SELECT original_url, short_code, visits, created_at FROM links WHERE short_code = $1", shortCode)
 	lDto := models.LinkDto{}
 	err := row.Scan(&lDto.Url, &lDto.ShortCode, &lDto.Visits, &lDto.CreatedAt)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return lDto, errs.NotFoundUrlError()
+		} else {
+			return lDto, err
+		}
+	}
+
 	return lDto, err
 
 }

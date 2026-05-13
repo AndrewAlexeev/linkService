@@ -36,7 +36,7 @@ func StartUpHttpServer() {
 
 	var lh = handlers.NewLinkHandler(ls)
 
-	config := config.InitConfig()
+	serverConfig := config.InitServerConfig()
 
 	mux := http.NewServeMux()
 
@@ -47,9 +47,9 @@ func StartUpHttpServer() {
 	mux.HandleFunc("DELETE /links/{short_code}", lh.DeleteByShortCode)
 	mux.HandleFunc("GET /links", lh.GetLinks)
 
-	log.Println("Start app on port: ", config.Port)
-	var error = http.ListenAndServe(":"+config.Port, mux)
-	if error != nil {
-		log.Fatal("Server startup error: ", error)
+	log.Println("Start app on port: ", serverConfig.Port)
+
+	if err := http.ListenAndServe(":"+serverConfig.Port, mux); err != nil {
+		log.Fatal("Server startup error: ", err)
 	}
 }

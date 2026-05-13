@@ -35,7 +35,7 @@ func (lh *LinkHandler) Create(w http.ResponseWriter, r *http.Request) {
 	shortCode, err := lh.linkService.SaveLink(r.Context(), createLinkRequest.Url)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -59,7 +59,8 @@ func (lh *LinkHandler) GetLinkByShortCode(w http.ResponseWriter, r *http.Request
 
 	if err != nil {
 		log.Printf("Eror while fetch link by short code: %s error: %s", shortCode, err)
-		if _, ok := err.(*errs.LinkServiceError); ok {
+
+		if _, ok := err.(*errs.NotFoundLinkError); ok {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
@@ -86,6 +87,7 @@ func (lh *LinkHandler) GetStatsByShortCode(w http.ResponseWriter, r *http.Reques
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	res := models.LinkStatResponse{
@@ -97,7 +99,9 @@ func (lh *LinkHandler) GetStatsByShortCode(w http.ResponseWriter, r *http.Reques
 
 	w.Header().Set("Content-Type", "application/json")
 
-	json.NewEncoder(w).Encode(res)
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		log.Printf("Failed to encode response: %v", err)
+	}
 
 }
 
@@ -112,6 +116,7 @@ func (lh *LinkHandler) DeleteByShortCode(w http.ResponseWriter, r *http.Request)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	log.Printf("Delete link by short code: %s", shortCode)
 
@@ -128,10 +133,13 @@ func (lh *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 
-	json.NewEncoder(w).Encode(linkDtos)
+	if err := json.NewEncoder(w).Encode(linkDtos); err != nil {
+		log.Printf("Failed to encode response: %v", err)
+	}
 
 }
