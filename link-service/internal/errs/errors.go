@@ -4,15 +4,15 @@ import (
 	"fmt"
 )
 
-type LinkServiceError struct {
+type NotFoundLinkError struct {
 	Code    int
 	Message string
 }
 
-func (e *LinkServiceError) Error() string {
+func (e *NotFoundLinkError) Error() string {
 	return fmt.Sprintf("Code %d: %s", e.Code, e.Message)
 }
 
 func NotFoundUrlError() error {
-	return &LinkServiceError{Code: 404, Message: "Not found url in db"}
+	return &NotFoundLinkError{Code: 404, Message: "Not found url in db"}
 }

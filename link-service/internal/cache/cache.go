@@ -43,7 +43,7 @@ func (lc *LinkCache) PutLinkInfo(ctx context.Context, dto models.CacheDto) error
 	retryBackoff := 10 * time.Millisecond
 
 	for i := 0; i < maxRetries; i++ {
-		// CAS с использованием WATCH
+		// CAS с использованием WATCH, чтобы решать рейскондишин при обновлении кеша
 		err = lc.client.Watch(ctx, func(tx *redis.Tx) error {
 			// 1. Получаем текущее значение
 			val, err := tx.Get(ctx, key).Result()
@@ -52,7 +52,7 @@ func (lc *LinkCache) PutLinkInfo(ctx context.Context, dto models.CacheDto) error
 			}
 			if val == "" {
 				_, err = tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
-					pipe.Set(ctx, key, value, 0)
+					pipe.Set(ctx, key, value, lc.ttl)
 					return nil
 				})
 
@@ -74,7 +74,7 @@ func (lc *LinkCache) PutLinkInfo(ctx context.Context, dto models.CacheDto) error
 
 			// 3. Выполняем изменения в транзакции
 			_, err = tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
-				pipe.Set(ctx, key, value, 0)
+				pipe.Set(ctx, key, value, lc.ttl)
 				return nil
 			})
 			return err
