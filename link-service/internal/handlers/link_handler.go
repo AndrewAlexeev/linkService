@@ -42,7 +42,14 @@ func (lh *LinkHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var createLinkResponse models.CreateLinkResponse
 	createLinkResponse.ShortCode = shortCode
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(createLinkResponse)
+	w.WriteHeader(http.StatusCreated)
+
+	if err = json.NewEncoder(w).Encode(createLinkResponse); err != nil {
+		log.Printf("Failed to encode response: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	log.Printf("Create link by short code: %s", shortCode)
 
 }
@@ -51,14 +58,14 @@ func (lh *LinkHandler) GetLinkByShortCode(w http.ResponseWriter, r *http.Request
 	shortCode := r.PathValue("short_code")
 
 	if shortCode == "" {
-		http.Error(w, "short_code is nil", http.StatusBadRequest)
+		http.Error(w, "short_code parameter is required", http.StatusBadRequest)
 		return
 	}
 
 	linkDto, err := lh.linkService.FindLinkByShortCode(r.Context(), shortCode)
 
 	if err != nil {
-		log.Printf("Eror while fetch link by short code: %s error: %s", shortCode, err)
+		log.Printf("Error while fetch link by short code: %s error: %s", shortCode, err)
 
 		if _, ok := err.(*errs.NotFoundLinkError); ok {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -73,13 +80,19 @@ func (lh *LinkHandler) GetLinkByShortCode(w http.ResponseWriter, r *http.Request
 	linkResponse.Url = linkDto.Url
 	linkResponse.Visits = linkDto.Visits
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(linkResponse)
+
+	if err = json.NewEncoder(w).Encode(linkResponse); err != nil {
+		log.Printf("Failed to encode response: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
 }
 
 func (lh *LinkHandler) GetStatsByShortCode(w http.ResponseWriter, r *http.Request) {
 	shortCode := r.PathValue("short_code")
 	if shortCode == "" {
-		http.Error(w, "short_code is nil", http.StatusBadRequest)
+		http.Error(w, "short_code parameter is required", http.StatusBadRequest)
 		return
 	}
 
@@ -108,7 +121,7 @@ func (lh *LinkHandler) GetStatsByShortCode(w http.ResponseWriter, r *http.Reques
 func (lh *LinkHandler) DeleteByShortCode(w http.ResponseWriter, r *http.Request) {
 	shortCode := r.PathValue("short_code")
 	if shortCode == "" {
-		http.Error(w, "short_code is nil", http.StatusBadRequest)
+		http.Error(w, "short_code parameter is required", http.StatusBadRequest)
 		return
 	}
 

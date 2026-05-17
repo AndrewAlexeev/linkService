@@ -67,7 +67,7 @@ func (l *LinkRepository) FindLinkByShortCode(ctx context.Context, shortCode stri
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.NotFoundUrlError()
+			return nil, errs.NewNotFoundLinkError()
 		} else {
 			return nil, err
 		}
@@ -97,7 +97,7 @@ func (l *LinkRepository) FindLinkStatsByShortCode(ctx context.Context, shortCode
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return lDto, errs.NotFoundUrlError()
+			return lDto, errs.NewNotFoundLinkError()
 		} else {
 			return lDto, err
 		}
