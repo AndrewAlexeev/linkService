@@ -18,7 +18,11 @@ func StartUpHttpServer() {
 		log.Fatal("Redis init error: ", errRedis)
 	}
 
-	lc := cache.InitLinkCache(*redisConfig)
+	lc, cacheError := cache.InitLinkCache(*redisConfig)
+
+	if cacheError != nil {
+		log.Fatal("Cache init error: ", cacheError)
+	}
 
 	dbconfig, err := config.InitDbConfig()
 

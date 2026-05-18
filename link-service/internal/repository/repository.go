@@ -8,7 +8,6 @@ import (
 	"link-service/internal/config"
 	"link-service/internal/errs"
 	"link-service/internal/models"
-	"log"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -25,6 +24,10 @@ func NewLinkRepository(dbConfig *config.DbConfig) (*LinkRepository, error) {
 
 	db, err := sql.Open("postgres", psqlInfo)
 
+	if err != nil {
+		return nil, fmt.Errorf("failed to open database: %w", err)
+	}
+
 	// Ограничиваем количество открытых соединений
 	db.SetMaxOpenConns(dbConfig.MaxOpenConns)
 	// Ограничиваем количество простаивающих соединений
@@ -32,14 +35,9 @@ func NewLinkRepository(dbConfig *config.DbConfig) (*LinkRepository, error) {
 	// Устанавливаем время жизни соединения
 	db.SetConnMaxLifetime(time.Duration(dbConfig.ConnMaxLifetimeInMin) * time.Minute)
 
-	if err != nil {
-		log.Fatal("failed to connect to database: %w", err)
-		return nil, err
-	}
-
 	if err := db.Ping(); err != nil {
-		log.Fatal("failed to ping database: %w", err)
-		return nil, err
+		db.Close()
+		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
 	return &LinkRepository{
@@ -51,8 +49,7 @@ func (l *LinkRepository) SaveUrl(ctx context.Context, link string, shortCode str
 
 	_, err := l.db.ExecContext(ctx, "INSERT INTO links (original_url, short_code, created_at, visits) VALUES ($1,$2,NOW(), 0)", link, shortCode)
 	if err != nil {
-		log.Print("save url error: ", err)
-		return err
+		return fmt.Errorf("save url error: %w", err)
 	}
 
 	return nil
@@ -84,8 +81,11 @@ func (l *LinkRepository) IncrementVisit(ctx context.Context, shortCode string) (
 	err := row.Scan(&visits)
 
 	if err != nil {
-		log.Print("error: ", err)
-		return visits, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return visits, errs.NewNotFoundLinkError()
+		} else {
+			return visits, err
+		}
 	}
 	return visits, nil
 }
@@ -110,8 +110,7 @@ func (l *LinkRepository) FindLinkStatsByShortCode(ctx context.Context, shortCode
 func (l *LinkRepository) DeleteByShortCode(ctx context.Context, shortCode string) error {
 	_, err := l.db.ExecContext(ctx, "DELETE FROM links WHERE short_code = $1", shortCode)
 	if err != nil {
-		log.Print("error: ", err)
-		return err
+		return fmt.Errorf("error: %w", err)
 	}
 	return nil
 }
@@ -120,8 +119,7 @@ func (l *LinkRepository) GetByPage(ctx context.Context, limit, offset int) ([]mo
 
 	rows, err := l.db.QueryContext(ctx, "SELECT original_url, short_code, visits, created_at FROM links ORDER BY created_at DESC LIMIT $1 OFFSET $2", limit, offset)
 	if err != nil {
-		log.Print("error: ", err)
-		return make([]models.LinkDto, 0), err
+		return make([]models.LinkDto, 0), fmt.Errorf("error: %w", err)
 	}
 
 	defer rows.Close()
@@ -133,8 +131,7 @@ func (l *LinkRepository) GetByPage(ctx context.Context, limit, offset int) ([]mo
 		lDto := models.LinkDto{}
 
 		if err := rows.Scan(&lDto.Url, &lDto.ShortCode, &lDto.Visits, &lDto.CreatedAt); err != nil {
-			log.Print(err)
-			return make([]models.LinkDto, 0), err
+			return make([]models.LinkDto, 0), fmt.Errorf("error: %w", err)
 		}
 
 		response = append(response, lDto)

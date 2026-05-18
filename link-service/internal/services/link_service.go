@@ -7,7 +7,6 @@ import (
 	"link-service/internal/repository"
 	"log"
 	"math/rand"
-	"strconv"
 	"time"
 )
 
@@ -62,6 +61,10 @@ func (ls *LinkService) FindLinkByShortCode(ctx context.Context, shortCode string
 		return linkDto, nil
 	}
 
+	if err != nil {
+		log.Printf("failed to get cache: %v\n", err)
+	}
+
 	linkDto, err = ls.linkRepository.FindLinkByShortCode(ctx, shortCode)
 
 	if err != nil {
@@ -79,24 +82,15 @@ func (ls *LinkService) FindLinkStatsByShortCode(ctx context.Context, shortCode s
 }
 
 func (ls *LinkService) DeleteByShortCode(ctx context.Context, shortCode string) error {
-	ls.linkCache.DeleteLinkInfo(ctx, shortCode)
+
+	if err := ls.linkCache.DeleteLinkInfo(ctx, shortCode); err != nil {
+		log.Printf("failed to delete cache: %v\n", err)
+	}
 	return ls.linkRepository.DeleteByShortCode(ctx, shortCode)
 }
 
-func (ls *LinkService) GetByPage(ctx context.Context, limit, offset string) ([]models.LinkDto, error) {
-	limitInt, err1 := strconv.Atoi(limit)
-
-	if err1 != nil {
-		return make([]models.LinkDto, 0), err1
-	}
-
-	offsetInt, err2 := strconv.Atoi(offset)
-
-	if err2 != nil {
-		return make([]models.LinkDto, 0), err2
-	}
-
-	return ls.linkRepository.GetByPage(ctx, limitInt, offsetInt)
+func (ls *LinkService) GetByPage(ctx context.Context, limit, offset int) ([]models.LinkDto, error) {
+	return ls.linkRepository.GetByPage(ctx, limit, offset)
 }
 
 func CreateRandomString(size int) string {
