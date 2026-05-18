@@ -159,7 +159,19 @@ func (lh *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSONResponse(w, linkDtos, http.StatusOK)
+	response := make([]models.LinkStatResponse, len(linkDtos))
+
+	for index, linkDto := range linkDtos {
+		res := models.LinkStatResponse{
+			ShortCode: linkDto.ShortCode,
+			Url:       linkDto.Url,
+			CreatedAt: linkDto.CreatedAt,
+			Visits:    linkDto.Visits,
+		}
+		response[index] = res
+	}
+
+	writeJSONResponse(w, response, http.StatusOK)
 
 }
 
