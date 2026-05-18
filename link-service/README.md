@@ -60,8 +60,11 @@ curl -X POST http://localhost:80/links \
   "short_code": "cGjK1xxjO9"
 }
 ```
+```diff
 
-<font color="red">Ошибка (400 Bad Request):<font>
+- color="red">Ошибка (400 Bad Request):
+```
+
 ```json
 {
   "error": "url is required"
