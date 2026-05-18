@@ -53,15 +53,16 @@ curl -X POST http://localhost:80/links \
   -d '{"url" : "documents.mvideo.ru"}'
 ```
 
-```json
 Успешный ответ (201 Created):
 
+```json
 {
   "short_code": "cGjK1xxjO9"
 }
+```
 
 Ошибка (400 Bad Request):
-
+```json
 {
   "error": "url is required"
 }
@@ -74,17 +75,17 @@ curl -X GET http://localhost:8080/links/cGjK1xxjO9
 
 ```
 
-```json
 Успешный ответ (200 Ok):
 
-
+```json
 {
   "url": "documents.mvideo.ru",
   "visits": 1
 }
-
+```
 Ошибка (404 Not Found):
 
+```json
 {
   "error": "error info: Not found url in db"
 }
@@ -96,18 +97,19 @@ curl -X GET http://localhost:8080/links/cGjK1xxjO9
 curl -X GET http://localhost:80/links/cGjK1xxjO9/stats
 
 ```
-
-```json
 Успешный ответ (200 Ok):
 
+```json
 {
   "short_code": "cGjK1xxjO9",
   "url": "documents.mvideo.ru",
   "visits": 1,
   "created_at": "2026-05-18T22:05:39.33773Z"
 }
+```
 
 Ошибка (404 Not Found):
+```json
 
 {
   "error": "error info: Not found url in db"
@@ -119,10 +121,9 @@ curl -X GET http://localhost:80/links/cGjK1xxjO9/stats
 ```bash
 curl -X DELETE http://localhost:80/links/cGjK1xпxjO9
 ```
-
-```json
 Успешный ответ (204 Not Content):
 
+```json
 {
   "short_code": "cGjK1xxjO9",
   "url": "documents.mvideo.ru",
@@ -135,10 +136,9 @@ curl -X DELETE http://localhost:80/links/cGjK1xпxjO9
 
 curl -X GET "http://localhost:8080/links?limit=10&offset=0"
 
-```json
-
 Успешный ответ (200 Ok):
 
+```json
 [
   {
     "ShortCode": "cGjK1xxjO9",
