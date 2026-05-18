@@ -61,7 +61,7 @@ curl -X POST http://localhost:80/links \
 }
 ```
 
-Ошибка (400 Bad Request):
+<font color="red">Ошибка (400 Bad Request):<font>
 ```json
 {
   "error": "url is required"
@@ -83,7 +83,7 @@ curl -X GET http://localhost:8080/links/cGjK1xxjO9
   "visits": 1
 }
 ```
-Ошибка (404 Not Found):
+<font color="red">Ошибка (404 Not Found):<font>
 
 ```json
 {
