@@ -48,6 +48,8 @@ docker compose up
 
 Можно переопределить в файле `docker-compose.yml`.
 
+Графический интерфейс redis доступен по адресу: http://localhost:8083
+
 ## 4. Использование
 
 ### 4.1 Создание короткой ссылки
@@ -144,27 +146,24 @@ curl -X GET "http://localhost:80/links?limit=10&offset=0"
   },
   {
     "short_code": "eEgbozNfli",
-    "url": "doc.mvieo.ru/2",
+    "url": "doc.mvideo.ru/2",
     "visits": 13,
     "created_at": "2026-05-18T21:48:06.582785Z"
   },
   {
     "short_code": "5fBC8qd5HP",
-    "url": "doc.mvieo.ru/3",
+    "url": "doc.mvideo.ru/3",
     "visits": 0,
     "created_at": "2026-05-18T21:48:05.533423Z"
   }
 ]
 ```
-
-Графический интерфейс redis доступен по адресу: http://localhost:8083
-
 ## 5. Технологии
 
-- [Golang]
-- [postgres]
-- [docker]
-- [redis]
+- Golang
+- postgres
+- docker
+- redis
 
 
 ## 6. Авторы
